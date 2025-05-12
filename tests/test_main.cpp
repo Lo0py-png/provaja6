@@ -1,5 +1,6 @@
 #include <cassert>
-extern int add(int, int);          // declaration comes from main.cpp
+
+int add(int a, int b) { return a + b; }
 
 int main() {
     assert(add(2, 3) == 5);
