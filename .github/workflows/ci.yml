@@ -1,0 +1,47 @@
+name: build-and-test
+on:
+  push:
+    branches: ["*"]
+
+
+linux-build:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Install deps
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y build-essential cppcheck
+    - name: Static analysis
+      run: cppcheck --enable=all --error-exitcode=1 src
+    - name: Build & unit-test
+      run: |
+        mkdir -p build
+        g++ -std=c++17 src/main.cpp          -o build/app
+        g++ -std=c++17 tests/test_main.cpp   -o build/tests
+        ./build/tests
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-artifacts
+        path: build/
+
+windows-build:
+  runs-on: self-hosted
+  steps:
+    - uses: actions/checkout@v4        
+    - name: Set up MSVC env            
+      uses: ilammy/msvc-dev-cmd@v1
+    - name: Build & unit-test          
+      shell: cmd
+      run: |
+        if not exist build mkdir build
+        cl /nologo /EHsc /std:c++17 src\main.cpp /Fe:build\app.exe
+        cl /nologo /EHsc /std:c++17 tests\test_main.cpp /Fe:build\tests.exe
+        build\tests.exe
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-artifacts
+        path: build\
+
